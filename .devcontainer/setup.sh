@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+echo "=== Installing git-lfs ==="
+sudo apt-get update -qq
+sudo apt-get install -y -qq git-lfs
+git lfs install
+
 echo "=== Installing k3d ==="
 curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
@@ -17,20 +22,15 @@ curl -sL -o /tmp/kubectl-argo-rollouts \
 chmod +x /tmp/kubectl-argo-rollouts
 sudo mv /tmp/kubectl-argo-rollouts /usr/local/bin/kubectl-argo-rollouts
 
-echo "=== Installing hey (load testing) ==="
-curl -sL -o /tmp/hey \
-  https://github.com/rakyll/hey/releases/download/v0.1.4/hey_linux_amd64
-chmod +x /tmp/hey
-sudo mv /tmp/hey /usr/local/bin/hey
+echo "=== Installing apache2-utils (ab load tester) ==="
+sudo apt-get update -qq
+sudo apt-get install -y -qq apache2-utils
 
 echo ""
 echo "=== Versions installed ==="
 echo "k3d:      $(k3d version | head -1)"
 echo "kubectl:  $(kubectl version --client -o yaml | grep gitVersion | head -1 | tr -d ' ')"
 echo "argocd:   $(argocd version --client --short 2>/dev/null | head -1 || echo 'installed')"
-echo "=== Installing apache2-utils (ab load tester) ==="
-sudo apt-get update -qq
-sudo apt-get install -y -qq apache2-utils
 echo "ab:       $(ab -V 2>&1 | head -1)"
 echo ""
 echo "=== Setup complete ==="
