@@ -1,0 +1,48 @@
+services:
+  auth:
+    build: ./services/auth
+    container_name: school-auth
+    ports: ["3001:3001"]
+    environment:
+      JWT_SECRET: "dev-secret-change-in-prod"
+      AUTH_FAILURE_RATE: "0"
+    networks: [school-net]
+
+  academics:
+    build: ./services/academics
+    container_name: school-academics
+    ports: ["3002:3002"]
+    environment:
+      ACADEMICS_FAILURE_RATE: "0"
+      ACADEMICS_LATENCY_MS: "0"
+    networks: [school-net]
+
+  dashboard:
+    build: ./services/dashboard
+    container_name: school-dashboard
+    ports: ["3003:3003"]
+    environment:
+      AUTH_URL: "http://auth:3001"
+      ACADEMICS_URL: "http://academics:3002"
+    depends_on:
+      - auth
+      - academics
+    networks: [school-net]
+
+  gateway:
+    build: ./services/gateway
+    container_name: school-gateway
+    ports: ["3000:3000"]
+    environment:
+      AUTH_URL: "http://auth:3001"
+      ACADEMICS_URL: "http://academics:3002"
+      DASHBOARD_URL: "http://dashboard:3003"
+    depends_on:
+      - auth
+      - academics
+      - dashboard
+    networks: [school-net]
+
+networks:
+  school-net:
+    driver: bridge
