@@ -1,0 +1,51 @@
+groups:
+  - name: school_sli
+    interval: 30s
+    rules:
+      # Total requests per second, per service
+      - record: school:http_requests:rate5m
+        expr: |
+          sum by (job) (rate(http_requests_total[5m]))
+
+      # Error requests per second (5xx), per service
+      - record: school:http_errors:rate5m
+        expr: |
+          sum by (job) (rate(http_requests_total{status=~"5.."}[5m]))
+
+      # Error ratio (0 to 1), per service.
+      # - `or (0 * ...)` handles the "no errors at all" case (empty vector)
+      # - `clamp_max(..., 1)` handles the "traffic dropped, residual errors" case
+      - record: school:http_error_ratio:rate5m
+        expr: |
+          clamp_max(
+            (
+              school:http_errors:rate5m
+              /
+              school:http_requests:rate5m
+            )
+            or
+            (0 * school:http_requests:rate5m),
+            1
+          )
+
+      # Availability ratio (1 - error ratio). Now safe because error_ratio
+      # is guaranteed to exist (from the `or`) and be in [0, 1] (from clamp_max).
+      - record: school:http_availability:ratio_rate5m
+        expr: |
+          1 - school:http_error_ratio:rate5m
+
+      # P95 latency, per service
+      - record: school:http_latency_p95:rate5m
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (job, le) (rate(http_request_duration_seconds_bucket[5m]))
+          )
+
+      # P99 latency, per service
+      - record: school:http_latency_p99:rate5m
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum by (job, le) (rate(http_request_duration_seconds_bucket[5m]))
+          )
