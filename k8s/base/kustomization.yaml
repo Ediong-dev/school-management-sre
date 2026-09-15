@@ -5,8 +5,14 @@ namespace: school
 
 resources:
   - auth-secret.yaml
-  - config.yaml
   - auth.yaml
   - academics.yaml
   - dashboard.yaml
   - gateway.yaml
+
+configMapGenerator:
+  - name: school-config
+    envs:
+      - config.env
+    options:
+      disableNameSuffixHash: false
