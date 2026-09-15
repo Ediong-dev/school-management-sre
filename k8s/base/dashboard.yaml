@@ -2,19 +2,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: academics
+  name: dashboard
   namespace: school
   labels:
-    app: academics
+    app: dashboard
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: academics
+      app: dashboard
   template:
     metadata:
       labels:
-        app: academics
+        app: dashboard
     spec:
       securityContext:
         runAsNonRoot: true
@@ -22,17 +22,15 @@ spec:
         runAsGroup: 10001
         fsGroup: 10001
       containers:
-        - name: academics
-          image: school-academics:k8s
-          imagePullPolicy: IfNotPresent
+        - name: dashboard
+          image: school-dashboard:k8s
+          imagePullPolicy: Always
           ports:
             - name: http
-              containerPort: 3002
-          env:
-            - name: ACADEMICS_FAILURE_RATE
-              value: "0"
-            - name: ACADEMICS_LATENCY_MS
-              value: "0"
+              containerPort: 3003
+          envFrom:
+            - configMapRef:
+                name: school-config
           livenessProbe:
             httpGet:
               path: /health
@@ -58,16 +56,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: academics
+  name: dashboard
   namespace: school
   labels:
-    app: academics
+    app: dashboard
 spec:
   type: ClusterIP
   selector:
-    app: academics
+    app: dashboard
   ports:
     - name: http
-      port: 3002
+      port: 3003
       targetPort: http
       protocol: TCP

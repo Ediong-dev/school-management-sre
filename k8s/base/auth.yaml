@@ -24,7 +24,7 @@ spec:
       containers:
         - name: auth
           image: school-auth:k8s
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 3001
