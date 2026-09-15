@@ -4,18 +4,18 @@ kind: Kustomization
 namespace: school
 
 resources:
-  - ../../base
+- ../../base
 
 images:
-  - name: school-auth
-    newName: ghcr.io/ediong-dev/school-auth
-    newTag: initial
-  - name: school-academics
-    newName: ghcr.io/ediong-dev/school-academics
-    newTag: initial
-  - name: school-dashboard
-    newName: ghcr.io/ediong-dev/school-dashboard
-    newTag: initial
-  - name: school-gateway
-    newName: ghcr.io/ediong-dev/school-gateway
-    newTag: initial
+- name: school-academics
+  newName: ghcr.io/ediong-dev/school-academics
+  newTag: f86bd938251db978ac59577c38e197ead10d21f8
+- name: school-auth
+  newName: ghcr.io/ediong-dev/school-auth
+  newTag: f86bd938251db978ac59577c38e197ead10d21f8
+- name: school-dashboard
+  newName: ghcr.io/ediong-dev/school-dashboard
+  newTag: f86bd938251db978ac59577c38e197ead10d21f8
+- name: school-gateway
+  newName: ghcr.io/ediong-dev/school-gateway
+  newTag: f86bd938251db978ac59577c38e197ead10d21f8
