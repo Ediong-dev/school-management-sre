@@ -1,0 +1,83 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: school-sli
+  namespace: school
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: school_sli
+      interval: 30s
+      rules:
+        # ---- Request rate ----
+        - record: school:http_requests:rate5m
+          expr: sum by (service) (rate(http_requests_total[5m]))
+
+        # ---- Error rate (5xx) ----
+        - record: school:http_errors:rate5m
+          expr: sum by (service) (rate(http_requests_total{status=~"5.."}[5m]))
+
+        # ---- Error ratio over multiple windows (for burn rate) ----
+        - record: school:http_error_ratio:rate5m
+          expr: |
+            clamp_max(
+              (school:http_errors:rate5m / school:http_requests:rate5m)
+              or (0 * school:http_requests:rate5m),
+              1
+            )
+
+        - record: school:http_error_ratio:rate30m
+          expr: |
+            clamp_max(
+              (
+                sum by (service) (rate(http_requests_total{status=~"5.."}[30m]))
+                /
+                sum by (service) (rate(http_requests_total[30m]))
+              )
+              or (0 * sum by (service) (rate(http_requests_total[30m]))),
+              1
+            )
+
+        - record: school:http_error_ratio:rate1h
+          expr: |
+            clamp_max(
+              (
+                sum by (service) (rate(http_requests_total{status=~"5.."}[1h]))
+                /
+                sum by (service) (rate(http_requests_total[1h]))
+              )
+              or (0 * sum by (service) (rate(http_requests_total[1h]))),
+              1
+            )
+
+        - record: school:http_error_ratio:rate6h
+          expr: |
+            clamp_max(
+              (
+                sum by (service) (rate(http_requests_total{status=~"5.."}[6h]))
+                /
+                sum by (service) (rate(http_requests_total[6h]))
+              )
+              or (0 * sum by (service) (rate(http_requests_total[6h]))),
+              1
+            )
+
+        # ---- Availability ----
+        - record: school:http_availability:ratio_rate5m
+          expr: 1 - school:http_error_ratio:rate5m
+
+        # ---- Latency percentiles ----
+        - record: school:http_latency_p95:rate5m
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (service, le) (rate(http_request_duration_seconds_bucket[5m]))
+            )
+
+        - record: school:http_latency_p99:rate5m
+          expr: |
+            histogram_quantile(
+              0.99,
+              sum by (service, le) (rate(http_request_duration_seconds_bucket[5m]))
+            )
