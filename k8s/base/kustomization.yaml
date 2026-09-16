@@ -9,6 +9,10 @@ resources:
   - academics.yaml
   - dashboard.yaml
   - gateway.yaml
+  - servicemonitor-auth.yaml
+  - servicemonitor-academics.yaml
+  - servicemonitor-dashboard.yaml
+  - servicemonitor-gateway.yaml
 
 configMapGenerator:
   - name: school-config
