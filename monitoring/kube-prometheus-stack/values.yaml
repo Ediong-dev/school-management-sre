@@ -26,9 +26,7 @@ alertmanager:
     alertmanagerConfigSelector:
       matchLabels:
         release: kube-prometheus-stack
-    alertmanagerConfigNamespaceSelector:
-      matchNames:
-        - school
+    alertmanagerConfigNamespaceSelector: {}
 
 grafana:
   replicas: 1
