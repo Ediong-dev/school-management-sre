@@ -23,6 +23,12 @@ alertmanager:
       limits:
         cpu: 200m
         memory: 128Mi
+    alertmanagerConfigSelector:
+      matchLabels:
+        release: kube-prometheus-stack
+    alertmanagerConfigNamespaceSelector:
+      matchNames:
+        - school
 
 grafana:
   replicas: 1

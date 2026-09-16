@@ -15,6 +15,7 @@ resources:
   - servicemonitor-gateway.yaml
   - prometheusrules-sli.yaml
   - prometheusrules-alerts.yaml
+  - alertmanagerconfig.yaml
 
 configMapGenerator:
   - name: school-config

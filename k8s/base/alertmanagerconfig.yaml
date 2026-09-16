@@ -1,0 +1,40 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: school-alerts
+  namespace: school
+  labels:
+    release: kube-prometheus-stack
+spec:
+  route:
+    receiver: 'discord'
+    groupBy: ['alertname', 'service']
+    groupWait: 10s
+    groupInterval: 30s
+    repeatInterval: 1h
+    routes:
+      - matchers:
+          - name: severity
+            value: critical
+        receiver: 'discord'
+        continue: true
+      - matchers:
+          - name: severity
+            value: warning
+        receiver: 'discord'
+  receivers:
+    - name: 'discord'
+      discordConfigs:
+        - apiURL:
+            name: alertmanager-discord
+            key: webhook-url
+          sendResolved: true
+          title: |
+            {{ if eq .Status "firing" }}🔥 FIRING{{ else }}✅ RESOLVED{{ end }}: {{ .CommonLabels.alertname }}
+          message: |
+            {{ range .Alerts }}
+            **Service:** {{ .Labels.service }}
+            **Severity:** {{ .Labels.severity }}
+            **Summary:** {{ .Annotations.summary }}
+            **Description:** {{ .Annotations.description }}
+            {{ end }}
