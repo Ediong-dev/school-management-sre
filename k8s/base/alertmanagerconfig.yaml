@@ -38,3 +38,8 @@ spec:
             **Summary:** {{ .Annotations.summary }}
             **Description:** {{ .Annotations.description }}
             {{ end }}
+# IMPORTANT: The secret `alertmanager-discord` must exist in the SAME namespace
+# as this AlertmanagerConfig (i.e., `school`). The Prometheus Operator resolves
+# secret references relative to the AlertmanagerConfig's namespace, not the
+# Alertmanager's namespace. Creating the secret in `monitoring` will cause the
+# operator to skip this config with a "secret not found" error.
