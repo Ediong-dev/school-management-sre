@@ -7,22 +7,28 @@ metadata:
     release: kube-prometheus-stack
 spec:
   route:
-    receiver: 'discord'
+    receiver: 'null'
     groupBy: ['alertname', 'service']
     groupWait: 10s
     groupInterval: 30s
     repeatInterval: 1h
     routes:
+      # Only SLO alerts from the school namespace go to Discord.
       - matchers:
+          - name: namespace
+            value: school
           - name: severity
             value: critical
         receiver: 'discord'
         continue: true
       - matchers:
+          - name: namespace
+            value: school
           - name: severity
             value: warning
         receiver: 'discord'
   receivers:
+    - name: 'null'
     - name: 'discord'
       discordConfigs:
         - apiURL:
