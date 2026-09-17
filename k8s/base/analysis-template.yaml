@@ -14,7 +14,14 @@ spec:
           address: http://kube-prometheus-stack-prometheus.monitoring:9090
           query: |
             sum(
-              school:http_error_ratio:rate5m{
-                service="gateway"
-              }
+              rate(http_requests_total{
+                service=~"gateway.*",
+                status=~"5.."
+              }[5m])
+            )
+            /
+            sum(
+              rate(http_requests_total{
+                service=~"gateway.*"
+              }[5m])
             )
