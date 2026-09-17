@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  resource.customizations.health.argoproj.io_Rollout: |
+    hs = {}
+    if obj.status == nil then
+      hs.status = "Progressing"
+      hs.message = "Waiting for status"
+      return hs
+    end
+    if obj.status.conditions ~= nil then
+      for i, condition in ipairs(obj.status.conditions) do
+        if condition.type == "Progressing" and condition.reason == "RolloutAborted" then
+          hs.status = "Degraded"
+          hs.message = condition.message
+          return hs
+        end
+        if condition.type == "Completed" and condition.reason == "RolloutCompleted" then
+          hs.status = "Healthy"
+          hs.message = condition.message
+          return hs
+        end
+      end
+    end
+    hs.status = "Progressing"
+    hs.message = "Rollout in progress"
+    return hs
