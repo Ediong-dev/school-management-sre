@@ -68,7 +68,7 @@ spec:
               containerPort: 3000
           envFrom:
             - configMapRef:
-                name: school-config
+                name: school-config-fggmbfc622
           env:
             - name: GATEWAY_FAILURE_RATE
               value: "0"
