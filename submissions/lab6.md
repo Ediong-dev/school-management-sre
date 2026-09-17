@@ -83,3 +83,48 @@ Part C: SLOs as code (`PrometheusRule` CRDs) — burn-rate alerts, error budgets
 Part D: Contact point (Discord webhook), alert routing, and the notification pipeline.
 Part E: Runbooks.
 Part F: Injected incident + blameless postmortem.
+
+---
+
+## Follow-Up Incident — Alert Fatigue on the Discord Channel (2026-09-18)
+
+**Symptom:** After several chaos and drill attempts, the Discord `#alerts` channel
+was flooded with chart-default alerts from kube-prometheus-stack:
+`Watchdog`, `InfoInhibitor`, `CPUThrottlingHigh`, `NodeClockNotSynchronising`,
+`TargetDown`. The real `SchoolSLOFastBurn` and `SchoolSLOSlowBurn` alerts were
+firing during the drill attempts but were buried in the noise and easily missed.
+
+**Diagnosis:** The `AlertmanagerConfig`'s top-level `route.receiver` was set to
+`discord`. Alerts that did not match any sub-route — i.e. the chart-default
+cluster alerts — fell through to the default receiver and were delivered to
+Discord anyway. The design had no default-drop policy; the default was "send
+everywhere."
+
+**Fix:** Changed the top-level `route.receiver` to `null` and added explicit
+`namespace=school` matchers on each Discord sub-route. Only alerts carrying
+our namespace label plus a matching severity label are now delivered.
+
+**Verification:**
+- Synthetic `InfoInhibitor` alert fired → routed to `null` → Discord stayed silent ✅
+- Synthetic `SchoolSLOFastBurn` alert fired → routed to `discord` → message delivered ✅
+- Real `SchoolSLOFastBurn` and `SchoolSLOSlowBurn` alerts (from Lab 6 drill)
+  remain visible in the Discord channel history from the drill window
+
+**Impact:** This was a genuine production-grade observability problem. In SRE
+terms, the alerting pipeline had no *default-drop* policy — the default was
+"send everywhere." Alert fatigue is one of the most common reasons on-call
+rotations fail. Fixing it requires reversing the polarity of the routing tree:
+default to drop, explicitly opt-in to notification via matchers.
+
+**Lesson:** Alertmanager route trees should terminate at a `null` receiver.
+Every notification destination should be reached by an explicit matcher, never
+by fallthrough. This is the same discipline as least-privilege IAM: deny by
+default, allow explicitly.
+
+**Evidence preservation:** The alerting pipeline was working correctly during
+the Lab 7 auto-abort drill — the `SchoolSLOFastBurn` and `SchoolSLOSlowBurn`
+messages visible in Discord's history are direct artifacts of the deployed
+PrometheusRule + AlertmanagerConfig + Discord webhook chain. They were
+retroactively discovered when auditing the channel for the postmortem, which
+is itself a real-world debugging technique: when you don't know what state the
+system was in, read the notification history.
