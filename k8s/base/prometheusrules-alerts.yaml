@@ -22,6 +22,7 @@ spec:
           for: 2m
           labels:
             severity: critical
+            namespace: school
             slo: availability_99_9
           annotations:
             summary: "{{ $labels.service }} is burning error budget fast"
@@ -44,6 +45,7 @@ spec:
           for: 15m
           labels:
             severity: warning
+            namespace: school
             slo: availability_99_9
           annotations:
             summary: "{{ $labels.service }} is trending toward SLO violation"
@@ -61,6 +63,7 @@ spec:
           for: 10m
           labels:
             severity: warning
+            namespace: school
             slo: latency_p95_500ms
           annotations:
             summary: "{{ $labels.service }} P95 latency > 500ms"
