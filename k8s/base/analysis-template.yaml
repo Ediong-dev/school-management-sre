@@ -14,9 +14,9 @@ spec:
           address: http://kube-prometheus-stack-prometheus.monitoring:9090
           query: |
             (
-              sum(rate(http_requests_total{service=~"gateway.*", status=~"5.."}[5m]))
+              sum(rate(http_requests_total{service="gateway-canary", status=~"5.."}[1m]))
               /
-              sum(rate(http_requests_total{service=~"gateway.*"}[5m]))
+              sum(rate(http_requests_total{service="gateway-canary"}[1m]))
             )
             or
-            (0 * sum(rate(http_requests_total{service=~"gateway.*"}[5m])))
+            (0 * sum(rate(http_requests_total{service="gateway-canary"}[1m])))
