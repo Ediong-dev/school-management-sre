@@ -1,7 +1,8 @@
 import os
-import httpx
+import random
 
-from fastapi import FastAPI, Request, Response
+import httpx
+from fastapi import FastAPI, HTTPException, Request, Response
 from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="School Gateway")
@@ -13,6 +14,9 @@ DASHBOARD_URL = os.getenv("DASHBOARD_URL", "http://dashboard:3003")
 
 TIMEOUT = httpx.Timeout(10.0, connect=2.0)
 
+# Fault injection for Lab 7 canary demos. Injected via env var.
+GATEWAY_FAILURE_RATE = float(os.getenv("GATEWAY_FAILURE_RATE", "0"))
+
 # Headers we never forward — these are hop-by-hop or cause breakage.
 HOP_BY_HOP = {
     "host", "connection", "keep-alive", "proxy-authenticate",
@@ -22,6 +26,10 @@ HOP_BY_HOP = {
 
 async def _proxy(base_url: str, path: str, request: Request) -> Response:
     """Forward request to upstream, preserve status, body, and headers."""
+    # Fault injection for Lab 7 canary demos.
+    if GATEWAY_FAILURE_RATE > 0 and random.random() < GATEWAY_FAILURE_RATE:
+        raise HTTPException(status_code=500, detail="Injected gateway failure")
+
     body = await request.body()
     headers = {k: v for k, v in request.headers.items() if k.lower() not in HOP_BY_HOP}
 
