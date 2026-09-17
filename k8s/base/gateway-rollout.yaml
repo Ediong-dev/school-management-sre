@@ -1,13 +1,51 @@
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-stable
+  namespace: school
+  labels:
+    app: gateway
+spec:
+  type: NodePort
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      nodePort: 30000
+      protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-canary
+  namespace: school
+  labels:
+    app: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
   namespace: school
   labels:
     app: gateway
 spec:
-  replicas: 2
+  replicas: 4
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
       app: gateway
@@ -23,7 +61,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: gateway
-          image: school-gateway:k8s
+          image: ghcr.io/ediong-dev/school-gateway:main
           imagePullPolicy: Always
           ports:
             - name: http
@@ -31,6 +69,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: school-config
+          env:
+            - name: GATEWAY_FAILURE_RATE
+              value: "0"
           livenessProbe:
             httpGet:
               path: /health
@@ -52,21 +93,16 @@ spec:
             limits:
               cpu: 250m
               memory: 128Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gateway
-  namespace: school
-  labels:
-    app: gateway
-spec:
-  type: NodePort
-  selector:
-    app: gateway
-  ports:
-    - name: http
-      port: 3000
-      targetPort: http
-      nodePort: 30000
-      protocol: TCP
+  strategy:
+    canary:
+      stableService: gateway-stable
+      canaryService: gateway-canary
+      analysis:
+        templates:
+          - templateName: gateway-error-rate
+      steps:
+        - setWeight: 25
+        - pause: { duration: 30s }
+        - setWeight: 50
+        - pause: { duration: 30s }
+        - setWeight: 100

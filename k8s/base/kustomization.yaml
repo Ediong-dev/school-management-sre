@@ -8,7 +8,8 @@ resources:
   - auth.yaml
   - academics.yaml
   - dashboard.yaml
-  - gateway.yaml
+  - gateway-rollout.yaml
+  - analysis-template.yaml
   - servicemonitor-auth.yaml
   - servicemonitor-academics.yaml
   - servicemonitor-dashboard.yaml
