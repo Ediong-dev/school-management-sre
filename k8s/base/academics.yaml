@@ -32,7 +32,7 @@ spec:
             - name: ACADEMICS_FAILURE_RATE
               value: "0"
             - name: ACADEMICS_LATENCY_MS
-              value: "3000"
+              value: "0"
           livenessProbe:
             httpGet:
               path: /health
