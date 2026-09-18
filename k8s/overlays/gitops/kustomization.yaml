@@ -9,13 +9,13 @@ resources:
 images:
 - name: school-academics
   newName: ghcr.io/ediong-dev/school-academics
-  newTag: cb5e84cde0c5300602e71725f536e21dc62f7a9d
+  newTag: 84874d4754df4fb7506de49becb5ba652767dcca
 - name: school-auth
   newName: ghcr.io/ediong-dev/school-auth
-  newTag: cb5e84cde0c5300602e71725f536e21dc62f7a9d
+  newTag: 84874d4754df4fb7506de49becb5ba652767dcca
 - name: school-dashboard
   newName: ghcr.io/ediong-dev/school-dashboard
-  newTag: cb5e84cde0c5300602e71725f536e21dc62f7a9d
+  newTag: 84874d4754df4fb7506de49becb5ba652767dcca
 - name: school-gateway
   newName: ghcr.io/ediong-dev/school-gateway
-  newTag: cb5e84cde0c5300602e71725f536e21dc62f7a9d
+  newTag: 84874d4754df4fb7506de49becb5ba652767dcca
