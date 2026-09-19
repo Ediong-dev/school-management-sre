@@ -28,12 +28,17 @@ spec:
           ports:
             - name: http
               containerPort: 3001
-          env:
+                    env:
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: auth-secret
                   key: jwt-secret
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: DATABASE_URL
             - name: AUTH_FAILURE_RATE
               value: "0"
           livenessProbe:
