@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: school
+data:
+  init.sql: |
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL,
+        name TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Seed users. `crypt` with gen_salt('bf') produces bcrypt hashes
+    -- that Python's passlib[bcrypt] can verify.
+    INSERT INTO users (email, password_hash, role, name) VALUES
+        ('admin@school.edu',   crypt('admin123',   gen_salt('bf')), 'admin',   'Admin User'),
+        ('teacher@school.edu', crypt('teacher123', gen_salt('bf')), 'teacher', 'Ms. Johnson'),
+        ('student@school.edu', crypt('student123', gen_salt('bf')), 'student', 'Alex Smith'),
+        ('parent@school.edu',  crypt('parent123',  gen_salt('bf')), 'parent',  'Mr. Smith')
+    ON CONFLICT (email) DO NOTHING;
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-init
+  namespace: school
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: postgres:16-alpine
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U school; do
+                echo "Waiting for postgres..."
+                sleep 2
+              done
+              echo "Postgres is ready. Running init.sql..."
+              psql -h postgres -U school -d school -f /init/init.sql
+          volumeMounts:
+            - name: init
+              mountPath: /init
+      volumes:
+        - name: init
+          configMap:
+            name: postgres-init
