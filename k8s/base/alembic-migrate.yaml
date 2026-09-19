@@ -10,7 +10,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: migrate
-          image: ghcr.io/ediong-dev/school-auth:main
+          image: school-auth:k8s
           command: ["alembic", "upgrade", "head"]
           env:
             - name: DATABASE_URL
