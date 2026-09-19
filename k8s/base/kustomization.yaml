@@ -10,6 +10,8 @@ resources:
   - dashboard.yaml
   - gateway-rollout.yaml
   - analysis-template.yaml
+  - postgres-secret.yaml
+  - postgres.yaml
   - servicemonitor-auth.yaml
   - servicemonitor-academics.yaml
   - servicemonitor-dashboard.yaml
