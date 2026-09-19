@@ -28,7 +28,7 @@ depends_on = None
 def upgrade() -> None:
     # Simulate a table-rewriting operation by holding a lock.
     op.execute("LOCK TABLE users IN ACCESS EXCLUSIVE MODE")
-    op.execute("SELECT pg_sleep(10)")
+    op.execute("SELECT pg_sleep(30)")
     # The actual change: a nullable column (safe on its own).
     op.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN")
 
