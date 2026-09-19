@@ -28,7 +28,7 @@ spec:
           ports:
             - name: http
               containerPort: 3001
-                    env:
+          env:
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
