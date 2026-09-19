@@ -13,6 +13,7 @@ resources:
   - postgres-secret.yaml
   - postgres.yaml
   - postgres-init.yaml
+  - alembic-migrate.yaml
   - servicemonitor-auth.yaml
   - servicemonitor-academics.yaml
   - servicemonitor-dashboard.yaml

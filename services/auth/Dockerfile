@@ -21,6 +21,8 @@ COPY --from=builder /install /usr/local
 
 # Copy app code with explicit ownership and read-only permissions.
 COPY --chown=app:app --chmod=0444 main.py .
+COPY --chown=app:app --chmod=0444 alembic.ini .
+COPY --chown=app:app --chmod=0555 alembic/ ./alembic/
 
 # Don't write .pyc files — we want a read-only runtime FS if possible.
 ENV PYTHONDONTWRITEBYTECODE=1
