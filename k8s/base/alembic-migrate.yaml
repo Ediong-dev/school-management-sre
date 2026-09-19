@@ -3,8 +3,11 @@ kind: Job
 metadata:
   name: alembic-migrate
   namespace: school
+  annotations:
+    argocd.argoproj.io/sync-options: Force=true,Replace=true
 spec:
   backoffLimit: 3
+  ttlSecondsAfterFinished: 3600
   template:
     spec:
       restartPolicy: OnFailure
