@@ -1,0 +1,81 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-backup-script
+  namespace: school
+data:
+  backup.sh: |
+    #!/bin/sh
+    set -e
+
+    TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
+    FILENAME="/backups/school-${TIMESTAMP}.dump"
+
+    echo "[$(date -u)] Starting backup to ${FILENAME}"
+
+    PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
+      -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" \
+      -F c -f "${FILENAME}"
+
+    SIZE=$(stat -c%s "${FILENAME}")
+    echo "[$(date -u)] Backup complete: ${SIZE} bytes"
+
+    ls -1t /backups/school-*.dump | tail -n +6 | while read -r old; do
+      echo "[$(date -u)] Removing old backup: ${old}"
+      rm -f "${old}"
+    done
+
+    echo "[$(date -u)] Done. Current backups:"
+    ls -la /backups/
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: school
+spec:
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: postgres:16-alpine
+              command: ["sh", "/scripts/backup.sh"]
+              env:
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: POSTGRES_PASSWORD
+                - name: POSTGRES_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: POSTGRES_DB
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: scripts
+              configMap:
+                name: postgres-backup-script
+                defaultMode: 0755
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups

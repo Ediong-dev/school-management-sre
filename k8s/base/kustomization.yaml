@@ -14,6 +14,8 @@ resources:
   - postgres.yaml
   - postgres-init.yaml
   - alembic-migrate.yaml
+  - postgres-backup-pvc.yaml
+  - postgres-backup.yaml
   - servicemonitor-auth.yaml
   - servicemonitor-academics.yaml
   - servicemonitor-dashboard.yaml
