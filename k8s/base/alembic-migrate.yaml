@@ -10,6 +10,23 @@ spec:
   ttlSecondsAfterFinished: 3600
   template:
     spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U school -d school; do
+                echo "Waiting for postgres..."
+                sleep 2
+              done
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
       restartPolicy: OnFailure
       containers:
         - name: migrate
