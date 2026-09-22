@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: locust-10-users
+  name: locust-200-users
   namespace: school
 spec:
   backoffLimit: 0
@@ -19,7 +19,7 @@ spec:
             - "--host"
             - "http://gateway-stable:3000"
             - "-u"
-            - "10"
+            - "200"
             - "-r"
             - "2"
             - "-t"
